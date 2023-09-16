@@ -1,0 +1,38 @@
+version: "3.1"
+services:
+  db:
+    image: postgres:15.2
+    restart: always
+    ports:
+      - 5437:5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USERNAME=postgres
+      - POSTGRES_DB=digital-kiosk
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  lint:
+    image: golangci/golangci-lint:v1.52.2
+    profiles: ["tools"]
+    volumes:
+      - .:/app
+    working_dir: /app
+
+  swagger:
+    image: swaggerapi/swagger-ui
+    ports:
+      - "8084:8080"
+    volumes:
+      - ./docs:/docs
+    environment:
+      - SWAGGER_JSON=/docs/api.yml
+      - BASE_URL=/swagger
+
+volumes:
+  postgres_data:
